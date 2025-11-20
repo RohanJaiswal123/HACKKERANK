@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef long long ll;
+
+typedef struct {
+    ll row;
+    ll c1;
+    ll c2;
+} Track;
+
+int cmp_tracks(const void *a, const void *b) {
+    const Track *A = a;
+    const Track *B = b;
+    if (A->row < B->row) return -1;
+    if (A->row > B->row) return 1;
+    if (A->c1 < B->c1) return -1;
+    if (A->c1 > B->c1) return 1;
+    return 0;
+}
+
+int main() {
+    ll r, c;
+    int k;
+    if (scanf("%lld %lld %d", &r, &c, &k) != 3) return 0;
+
+    if (k == 0) {
+        // No tracks
+        printf("%lld\n", r * c);
+        return 0;
+    }
+
+    Track *tracks = malloc((size_t)k * sizeof(Track));
+    if (!tracks) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return 1;
+    }
+
+    for (int i = 0; i < k; ++i) {
+        ll ri, ci1, ci2;
+        scanf("%lld %lld %lld", &ri, &ci1, &ci2);
+        // Ensure c1 <= c2 (HackerRank input already satisfies this, but safe)
+        if (ci1 > ci2) {
+            ll tmp = ci1; ci1 = ci2; ci2 = tmp;
+        }
+        tracks[i].row = ri;
+        tracks[i].c1 = ci1;
+        tracks[i].c2 = ci2;
+    }
+
+    qsort(tracks, k, sizeof(Track), cmp_tracks);
+
+    ll blocked = 0;
+    ll cur_row = tracks[0].row;
+    ll cur_start = tracks[0].c1;
+    ll cur_end   = tracks[0].c2;
+
+    for (int i = 1; i < k; ++i) {
+        if (tracks[i].row != cur_row) {
+            // finalize previous row
+            blocked += (cur_end - cur_start + 1);
+            // start new row interval
+            cur_row = tracks[i].row;
+            cur_start = tracks[i].c1;
+            cur_end = tracks[i].c2;
+        } else {
+            // same row -> merge if overlapping/adjacent, else finalize and start new interval
+            if (tracks[i].c1 <= cur_end + 1) {
+                if (tracks[i].c2 > cur_end) cur_end = tracks[i].c2;
+            } else {
+                blocked += (cur_end - cur_start + 1);
+                cur_start = tracks[i].c1;
+                cur_end = tracks[i].c2;
+            }
+        }
+    }
+
+    // finalize last interval
+    blocked += (cur_end - cur_start + 1);
+
+    ll total = r * c;
+    ll free_cells = total - blocked;
+    if (free_cells < 0) free_cells = 0; // safety
+    printf("%lld\n", free_cells);
+
+    free(tracks);
+    return 0;
+}
