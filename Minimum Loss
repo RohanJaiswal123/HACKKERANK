@@ -6,13 +6,6 @@ string ltrim(const string &);
 string rtrim(const string &);
 vector<string> split(const string &);
 
-/*
- * Complete the 'minimumLoss' function below.
- *
- * The function is expected to return an INTEGER.
- * The function accepts LONG_INTEGER_ARRAY price as parameter.
- */
-
 int minimumLoss(vector<long> price) {
     int n = price.size();
     vector<pair<long,int>> arr;
